@@ -1916,6 +1916,8 @@ static void tun_setup(struct net_device *dev)
 static int tun_validate(struct nlattr *tb[], struct nlattr *data[],
 			struct netlink_ext_ack *extack)
 {
+	if (!data)
+		return 0;
 	return -EINVAL;
 }
 
