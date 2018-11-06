@@ -3217,6 +3217,7 @@ static void binder_transaction(struct binder_proc *proc,
 		//SAnP]
 		goto err_binder_alloc_buf_failed;
 	}
+
 	if (secctx) {
 		size_t buf_offset = ALIGN(tr->data_size, sizeof(void *)) +
 					ALIGN(tr->offsets_size, sizeof(void *)) +
