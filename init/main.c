@@ -195,7 +195,7 @@ bool static_key_initialized __read_mostly;
 EXPORT_SYMBOL_GPL(static_key_initialized);
 
 /*
- * If set, this is an indication to the drivers that reset the underlying
+ * If set, this is an indication to the drivers that reset the underlyingjump_label_init
  * device before going ahead with the initialization otherwise driver might
  * rely on the BIOS and skip the reset operation.
  *
@@ -845,6 +845,8 @@ asmlinkage __visible void __init start_kernel(void)
 	pr_notice("Kernel command line: %s\n", erased_command_line);
 #endif
 
+	/* parameters may set static keys */
+	jump_label_init();
 	parse_early_param();
 	after_dashes = parse_args("Booting kernel",
 				  static_command_line, __start___param,
@@ -853,8 +855,6 @@ asmlinkage __visible void __init start_kernel(void)
 	if (!IS_ERR_OR_NULL(after_dashes))
 		parse_args("Setting init args", after_dashes, NULL, 0, -1, -1,
 			   NULL, set_init_arg);
-
-	jump_label_init();
 
 	/*
 	 * These use large bootmem allocations and must precede
