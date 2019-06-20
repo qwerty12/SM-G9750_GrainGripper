@@ -3369,3 +3369,7 @@ static inline bool f2fs_may_encrypt_bio(struct inode *inode,
 }
 
 #endif
+
+#define EFSBADCRC	EBADMSG		/* Bad CRC detected */
+#define EFSCORRUPTED	EUCLEAN		/* Filesystem is corrupted */
+
