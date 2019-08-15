@@ -4,7 +4,7 @@
 #
 
 # [ SEC_SELINUX_PORTING_COMMON
-ccflags-y := -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
+ccflags-y := -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include -UCONFIG_ALWAYS_ENFORCE
 
 ifeq ($(TARGET_BUILD_VARIANT), eng)
 ifeq ($(SEC_BUILD_OPTION_PRODUCT_SHIP), false)
@@ -14,13 +14,6 @@ endif
 endif
 endif
 
-ifeq ($(TARGET_BUILD_VARIANT), user)
-ifeq ($(SEC_BUILD_OPTION_PRODUCT_SHIP), true)
-ifeq ($(SEC_BUILD_OPTION_SELINUX_ENFORCE),true)
-ccflags-y += -DCONFIG_ALWAYS_ENFORCE=true
-endif
-endif
-endif
 # ] SEC_SELINUX_PORTING_COMMON
 
 obj-$(CONFIG_SECURITY_SELINUX) := selinux.o
