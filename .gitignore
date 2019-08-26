@@ -156,3 +156,4 @@ x509.genkey
 /arch/arm64/boot/Image
 /scripts/crypto/__pycache__/
 /magiskinit64
+*.rej
