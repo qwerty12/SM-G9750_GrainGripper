@@ -980,6 +980,7 @@ struct dwc3_scratchpad_array {
  * @irq_dbg_index: index for capturing IRQ stats
  * @wait_linkstate: waitqueue for waiting LINK to move into required state
  * @vbus_draw: current to be drawn from USB
+ * @dis_metastability_quirk: set to disable metastability quirk.
  * @imod_interval: set the interrupt moderation interval in 250ns
  *                 increments or 0 to disable.
  * @index: dwc3's instance number
@@ -1162,6 +1163,7 @@ struct dwc3 {
 	unsigned		disable_clk_gating:1;
 	unsigned		enable_bus_suspend:1;
 	unsigned		usb3_u1u2_disable:1;
+	unsigned		dis_metastability_quirk:1;
 
 	atomic_t		in_lpm;
 	bool			b_suspend;
