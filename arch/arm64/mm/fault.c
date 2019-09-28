@@ -928,7 +928,7 @@ asmlinkage int __exception do_debug_exception(unsigned long addr_if_watchpoint,
 	int rv;
 
 #ifdef CONFIG_USER_RESET_DEBUG
-	sec_debug_save_fault_info(esr, inf->name, addr, 0UL);
+	sec_debug_save_fault_info(esr, inf->name, addr_if_watchpoint, 0UL);
 #endif
 	/*
 	 * Tell lockdep we disabled irqs in entry.S. Do nothing if they were
