@@ -419,7 +419,9 @@ static inline void __cb_keycrash(unsigned long arg)
 				"Crash Key", "Long Key Press"};
 
 	__reset_pon_s2_ctrl_reset();
+#ifdef CONFIG_QCOM_WATCHDOG_V2
 	emerg_pet_watchdog();
+#endif
 	dump_stack();
 	dump_all_task_info();
 	dump_cpu_stat();

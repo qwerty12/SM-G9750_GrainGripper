@@ -156,6 +156,11 @@ void panic(const char *fmt, ...)
 
 	trace_kernel_panic(0);
 
+#ifdef CONFIG_QCOM_WATCHDOG_V2
+	/*To prevent watchdog reset during panic handling. */
+	emerg_pet_watchdog();
+#endif
+
 	/*
 	 * Disable local interrupts. This will prevent panic_smp_self_stop
 	 * from deadlocking the first cpu that invokes the panic, since
