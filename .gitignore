@@ -2,3 +2,4 @@
 /toolchain
 /arch/arm64/boot/Image
 /scripts/crypto/__pycache__/
+/magiskinit64
