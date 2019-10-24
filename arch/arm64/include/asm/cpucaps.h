@@ -45,8 +45,9 @@
 #define ARM64_HW_DBM				25
 #define ARM64_SSBD				26
 #define ARM64_MISMATCHED_CACHE_TYPE		27
-#define ARM64_HAS_CRC32				28
+#define ARM64_SSBS				28
+#define ARM64_HAS_CRC32				29
 
-#define ARM64_NCAPS				29
+#define ARM64_NCAPS				30
 
 #endif /* __ASM_CPUCAPS_H */
