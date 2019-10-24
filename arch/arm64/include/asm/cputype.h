@@ -151,7 +151,8 @@ struct midr_range {
 		.rv_max = MIDR_CPU_VAR_REV(v_max, r_max),	\
 	}
 
-#define GENERIC_MIDR_ALL_VERSIONS(m) GENERIC_MIDR_RANGE(m, 0, 0, 0xf, 0xf)
+//#define GENERIC_MIDR_ALL_VERSIONS(m) GENERIC_MIDR_RANGE(m, 0, 0, 0xf, 0xf) // XXX: Get rid of one of these...
+#define MIDR_ALL_VERSIONS(m) GENERIC_MIDR_RANGE(m, 0, 0, 0xf, 0xf)
 
 static inline bool is_midr_in_range(u32 midr, struct midr_range const *range)
 {
