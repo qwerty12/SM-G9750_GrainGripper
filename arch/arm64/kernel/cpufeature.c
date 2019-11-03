@@ -799,10 +799,12 @@ static bool has_no_hw_prefetch(const struct arm64_cpu_capabilities *entry, int _
 		MIDR_CPU_VAR_REV(1, MIDR_REVISION_MASK));
 }
 
+#ifdef CONFIG_ARM64_VHE
 static bool runs_at_el2(const struct arm64_cpu_capabilities *entry, int __unused)
 {
 	return is_kernel_in_hyp_mode();
 }
+#endif
 
 static bool hyp_offset_low(const struct arm64_cpu_capabilities *entry,
 			   int __unused)
@@ -952,9 +954,9 @@ static bool cpu_has_broken_dbm(void)
 	static const struct midr_range cpus[] = {
 #ifdef CONFIG_ARM64_ERRATUM_1024718
 		// A55 r0p0 -r1p0
-		GENERIC_MIDR_RANGE(MIDR_CORTEX_A55, 0, 0, 1, 0),
-		GENERIC_MIDR_RANGE(MIDR_KRYO3S, 7, 12, 7, 12),
-		GENERIC_MIDR_RANGE(MIDR_KRYO4S, 7, 12, 7, 12),
+		MIDR_RANGE(MIDR_CORTEX_A55, 0, 0, 1, 0),
+		MIDR_RANGE(MIDR_KRYO3S, 7, 12, 7, 12),
+		MIDR_RANGE(MIDR_KRYO4S, 7, 12, 7, 12),
 #endif
 		{},
 	};
@@ -973,15 +975,10 @@ static bool cpu_can_use_dbm(const struct arm64_cpu_capabilities *cap)
 	return has_cpu_feature && !cpu_has_broken_dbm();
 }
 
-static int cpu_enable_hw_dbm(void *entry)
+static void cpu_enable_hw_dbm(const struct arm64_cpu_capabilities *cap)
 {
-	const struct arm64_cpu_capabilities *cap =
-		(const struct arm64_cpu_capabilities *) entry;
-
 	if (cpu_can_use_dbm(cap))
 		__cpu_enable_hw_dbm();
-
-	return 0;
 }
 
 static bool has_hw_dbm(const struct arm64_cpu_capabilities *cap,
@@ -1015,6 +1012,7 @@ static bool has_hw_dbm(const struct arm64_cpu_capabilities *cap,
 
 #endif
 
+#ifdef CONFIG_ARM64_VHE
 static void cpu_copy_el2regs(const struct arm64_cpu_capabilities *__unused)
 {
 	/*
@@ -1028,6 +1026,7 @@ static void cpu_copy_el2regs(const struct arm64_cpu_capabilities *__unused)
 	if (!alternatives_applied)
 		write_sysreg(read_sysreg(tpidr_el1), tpidr_el2);
 }
+#endif
 
 #ifdef CONFIG_ARM64_SSBD
 static int ssbs_emulation_handler(struct pt_regs *regs, u32 instr)
@@ -1212,6 +1211,15 @@ static const struct arm64_cpu_capabilities arm64_features[] = {
 		.cpu_enable = cpu_enable_hw_dbm,
 	},
 #endif
+	{
+		.desc = "CRC32 instructions",
+		.capability = ARM64_HAS_CRC32,
+		.type = ARM64_CPUCAP_SYSTEM_FEATURE,
+		.matches = has_cpuid_feature,
+		.sys_reg = SYS_ID_AA64ISAR0_EL1,
+		.field_pos = ID_AA64ISAR0_CRC32_SHIFT,
+		.min_field_value = 1,
+	},
 #ifdef CONFIG_ARM64_SSBD
 	{
 		.desc = "Speculative Store Bypassing Safe (SSBS)",
@@ -1225,15 +1233,6 @@ static const struct arm64_cpu_capabilities arm64_features[] = {
 		.cpu_enable = cpu_enable_ssbs,
 	},
 #endif
-	{
-		.desc = "CRC32 instructions",
-		.capability = ARM64_HAS_CRC32,
-		.def_scope = SCOPE_SYSTEM,
-		.matches = has_cpuid_feature,
-		.sys_reg = SYS_ID_AA64ISAR0_EL1,
-		.field_pos = ID_AA64ISAR0_CRC32_SHIFT,
-		.min_field_value = 1,
-	},
 	{},
 };
 
