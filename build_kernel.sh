@@ -26,5 +26,5 @@ make -j$PROC -C "$(pwd)" O="$(pwd)/out" "${KERNEL_MAKE_ENV[@]}" ARCH=arm64 CROSS
 make -j$PROC -C "$(pwd)" O="$(pwd)/out" "${KERNEL_MAKE_ENV[@]}" ARCH=arm64 CROSS_COMPILE="${BUILD_CROSS_COMPILE}" REAL_CC="${KERNEL_LLVM_BIN}" CFP_CC="$KERNEL_LLVM_CFP" CLANG_TRIPLE=$CLANG_TRIPLE ANDROID_VERSION="$ANDROID_VERSION"
  
 #cp -f out/arch/arm64/boot/Image "$(pwd)/arch/arm64/boot/Image"
-"$(pwd)/tools/dtc" "$(pwd)/arch/arm64/boot/dts/qcom/03_dtbdump_<e,u_AAy.dtb.dts" >> "$(pwd)/out/arch/arm64/boot/Image-dtb" # TODO: shove this into the relevant Makefile
+"$(pwd)/tools/dtc" "$(pwd)/arch/arm64/boot/dts/qcom/03_dtbdump_<e,u_AAy.dts" >> "$(pwd)/out/arch/arm64/boot/Image-dtb" # TODO: shove this into the relevant Makefile
 "$(pwd)/create_image.sh"

@@ -28,7 +28,7 @@ mapfile -t dtbos < <(find "${swd}/out/arch/arm64/boot/dts/samsung" -name 'sm8150
              --ramdisk_offset 0x02000000 \
              --second_offset 0x00f00000 \
              --os_version '9.0.0' \
-             --os_patch_level '2019-09-01' \
+             --os_patch_level '2019-11-01' \
              --tags_offset 0x01e00000 \
              --board 'RILRI20C002' \
              --pagesize 4096 \
@@ -36,33 +36,33 @@ mapfile -t dtbos < <(find "${swd}/out/arch/arm64/boot/dts/samsung" -name 'sm8150
              -o "${output_recovery_image}"
 
 if [ -n "$INSTALL_MAGISK" ] && [ "$INSTALL_MAGISK" -eq "1" ]; then
-     # https://github.com/topjohnwu/Magisk/blob/86481c74ffc804d6e3fc01ce89102af3ca4dbab5/scripts/boot_patch.sh - Magisk 20 doesn't work here
-     readonly KEEPVERITY=true
-     readonly KEEPFORCEENCRYPT=true
+    # https://github.com/topjohnwu/Magisk/blob/86481c74ffc804d6e3fc01ce89102af3ca4dbab5/scripts/boot_patch.sh - Magisk 20 doesn't work here
+    readonly KEEPVERITY=true
+    readonly KEEPFORCEENCRYPT=true
+    readonly BOOTIMAGE="$(basename "${output_recovery_image}")"
+    readonly SHA1=($(sha1sum "${output_recovery_image}"))
 
-     tmpwrkdir="$(mktemp -d)" || exit 1
-     trap "rm -rf ${tmpwrkdir}" EXIT
-     pushd "${tmpwrkdir}"
+    tmpwrkdir="$(mktemp -d)" || exit 1
+    trap "rm -rf ${tmpwrkdir}" EXIT
+    pushd "${tmpwrkdir}"
 
-     readonly BOOTIMAGE="$(basename "${output_recovery_image}")"
-     cp -f "${output_recovery_image}" .
-     readonly SHA1=($(sha1sum "${output_recovery_image}"))
+    cp -f "${output_recovery_image}" .
 
-     echo "KEEPVERITY=$KEEPVERITY" > config
-     echo "KEEPFORCEENCRYPT=$KEEPFORCEENCRYPT" >> config
-     [ -n "$SHA1" ] && echo "SHA1=$SHA1" >> config
-     echo "RECOVERYMODE=true" >> config
+    echo "KEEPVERITY=$KEEPVERITY" > config
+    echo "KEEPFORCEENCRYPT=$KEEPFORCEENCRYPT" >> config
+    [ -n "$SHA1" ] && echo "SHA1=$SHA1" >> config
+    echo "RECOVERYMODE=true" >> config
 
-     "$magiskboot" unpack "$BOOTIMAGE"
+    "$magiskboot" unpack "$BOOTIMAGE"
 
-	fakeroot "$magiskboot" cpio ramdisk.cpio \
+    fakeroot "$magiskboot" cpio ramdisk.cpio \
 "mkdir 000 .backup" \
 "mv init .backup/init" \
 "add 750 init ${swd}/magiskinit64" \
 "patch $KEEPVERITY $KEEPFORCEENCRYPT" \
 "add 000 .backup/.magisk config"
 
-     "$magiskboot" repack "${BOOTIMAGE}" "${output_recovery_image}"
+    "$magiskboot" repack "${BOOTIMAGE}" "${output_recovery_image}"
 
-     popd
+    popd
 fi
