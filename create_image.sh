@@ -55,7 +55,7 @@ if [ -n "$INSTALL_MAGISK" ] && [ "$INSTALL_MAGISK" -eq "1" ]; then
 
      "$magiskboot" unpack "$BOOTIMAGE"
 
-fakeroot "$magiskboot" cpio ramdisk.cpio \
+	fakeroot "$magiskboot" cpio ramdisk.cpio \
 "mkdir 000 .backup" \
 "mv init .backup/init" \
 "add 750 init ${swd}/magiskinit64" \

@@ -7,12 +7,15 @@ readonly recovery_image="$(pwd)/out/arch/arm64/boot/recovery.img"
 readonly recovery_basename="$(basename "$recovery_image")"
 
 if [ ! -f "$recovery_image" ] || [ -z "$recovery_basename" ]; then
+	echo "${recovery_image} not found!"
 	exit 1
 fi
 
+echo -n "Waiting for SM-G9750 to flash ${recovery_image} onto..."
 adb wait-for-any
 devices="$(adb devices -l | grep 'model:SM_G9750')"
 if [ "$(echo "$devices" | wc -l)" -ne 1 ]; then
+	echo ' found more than one, exiting.'
 	exit 1
 fi
 
@@ -20,10 +23,13 @@ read -r -a devices <<< "$devices"
 serial="${devices[0]}"
 mode="${devices[1]}"
 if [ -z "$serial" ] || [ -z "$mode" ]; then
+	echo ' could not determine serial and/or boot mode of connected S10+'
 	exit 1
 fi
 
-readonly sync="sync ; echo 3 > /proc/sys/vm/drop_caches ; sync"
+echo " found!"
+
+readonly sync='sync ; echo 3 > /proc/sys/vm/drop_caches ; sync'
 if [ "$mode" = "recovery" ]; then
 	readonly dest="/tmp"
 	adb -s "$serial" push "$recovery_image" "$dest/"
