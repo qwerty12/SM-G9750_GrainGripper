@@ -37,7 +37,12 @@ mapfile -t dtbos < <(find "${swd}/out/arch/arm64/boot/dts/samsung" -type f -name
              -o "${output_recovery_image}"
 
 if [ -n "$INSTALL_MAGISK" ] && [ "$INSTALL_MAGISK" -eq "1" ]; then
-    # https://github.com/topjohnwu/Magisk/blob/86481c74ffc804d6e3fc01ce89102af3ca4dbab5/scripts/boot_patch.sh - Magisk 20 doesn't work here
+    # https://github.com/topjohnwu/Magisk/blob/86481c74ffc804d6e3fc01ce89102af3ca4dbab5/scripts/boot_patch.sh
+    readonly magiskinit64="${swd}/magiskinit64"
+    if [ ! -f "$magiskinit64" ]; then
+        echo "${magiskinit64} not found, cannot repack recovery image with it"
+        exit 1
+    fi
     readonly KEEPVERITY=true
     readonly KEEPFORCEENCRYPT=true
     readonly BOOTIMAGE="$(basename "${output_recovery_image}")"
@@ -59,7 +64,7 @@ if [ -n "$INSTALL_MAGISK" ] && [ "$INSTALL_MAGISK" -eq "1" ]; then
     fakeroot "$magiskboot" cpio ramdisk.cpio \
 "mkdir 000 .backup" \
 "mv init .backup/init" \
-"add 750 init ${swd}/magiskinit64" \
+"add 750 init ${magiskinit64}" \
 "patch $KEEPVERITY $KEEPFORCEENCRYPT" \
 "add 000 .backup/.magisk config"
 
