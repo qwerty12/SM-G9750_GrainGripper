@@ -10,16 +10,17 @@ readonly avbtool="../omni/external/avb/avbtool"
 readonly mkbootimg="../omni/out/host/linux-x86/bin/mkbootimg"
 
 readonly cmdline='console=null androidboot.hardware=qcom androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 swiotlb=2048 firmware_class.path=/vendor/firmware_mnt/image androidboot.usbcontroller=a600000.dwc3'
+readonly input_ramdisk="${swd}/../omni/out/target/product/beyond2qlte/ramdisk-recovery.cpio"
+readonly output_compressed_ramdisk="${swd}/out/arch/arm64/boot/ramdisk.cpio.gz"
 readonly output_recovery_dtbo="${swd}/out/arch/arm64/boot/recovery_dtbo.img"
-readonly compressed_ramdisk="${swd}/out/arch/arm64/boot/ramdisk.cpio.gz"
 readonly output_recovery_image="${swd}/out/arch/arm64/boot/recovery.img"
 
 mapfile -t dtbos < <(find "${swd}/out/arch/arm64/boot/dts/samsung" -name 'sm8150-sec-beyond2qlte-chnhk-overlay*.dtbo')
 ./tools/mkdtimg create "${output_recovery_dtbo}" --page_size=4096 "${dtbos[@]}"
 "$avbtool" add_hash_footer --image "${output_recovery_dtbo}" --partition_size 8388608 --partition_name dtbo
-"$magiskboot" compress=gzip "${swd}/../omni/out/target/product/beyond2qlte/ramdisk-recovery.cpio" "${compressed_ramdisk}"
+"$magiskboot" compress=gzip "${input_ramdisk}" "${output_compressed_ramdisk}"
 "$mkbootimg" --kernel "${swd}/out/arch/arm64/boot/Image-dtb" \
-             --ramdisk "${compressed_ramdisk}" \
+             --ramdisk "${output_compressed_ramdisk}" \
              --recovery_dtbo "${output_recovery_dtbo}" \
              --cmdline "${cmdline}" \
              --base 0x00000000 \
