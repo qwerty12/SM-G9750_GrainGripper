@@ -4513,6 +4513,7 @@ loop_end:
 int msm_comm_try_get_bufreqs(struct msm_vidc_inst *inst)
 {
 	int rc = 0, i = 0;
+	u32 rc_mode;
 	union hal_get_property hprop;
 	enum hal_buffer int_buf[] = {
 			HAL_BUFFER_INTERNAL_SCRATCH,
@@ -4573,6 +4574,18 @@ int msm_comm_try_get_bufreqs(struct msm_vidc_inst *inst)
 				req.buffer_count_actual,
 				req.buffer_count_min_host,
 				req.buffer_count_min, req.buffer_size);
+		}
+	}
+
+	/* Buffer size will be double when the resolution is 512x512 with RC_OFF */
+	/* This is for HEIF capture */
+	rc_mode = msm_comm_g_ctrl_for_id(inst, V4L2_CID_MPEG_VIDEO_BITRATE_MODE);
+	if(rc_mode == V4L2_MPEG_VIDEO_BITRATE_MODE_RC_OFF) {
+		for (i = 0; i < HAL_BUFFER_MAX; i++) {
+			if ((inst->buff_req.buffer[i].buffer_type == HAL_BUFFER_OUTPUT) &&
+			    (inst->buff_req.buffer[i].buffer_size >= 100500 && inst->buff_req.buffer[i].buffer_size <= 200000)){
+				inst->buff_req.buffer[i].buffer_size *= 2;
+			}
 		}
 	}
 
