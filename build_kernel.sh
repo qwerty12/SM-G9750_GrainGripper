@@ -6,7 +6,7 @@ set -e
 test -d out || mkdir out
 
 TOOLCHAIN_BASE="$(pwd)/../PLATFORM/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9"
-CLANG_BASE="$(pwd)/toolchain/llvm-arm-toolchain-ship/6.0"
+CLANG_BASE="$(pwd)/../toolchain/llvm-arm-toolchain-ship/6.0"
 if [ -n "$USE_CCACHE" ] && [ "$USE_CCACHE" -eq "1" ]; then
 	export PATH="${CLANG_BASE}/bin:${TOOLCHAIN_BASE}/bin:$PATH"
 	KERNEL_LLVM_BIN="ccache clang"
@@ -26,5 +26,5 @@ make -j$PROC -C "$(pwd)" O="$(pwd)/out" "${KERNEL_MAKE_ENV[@]}" ARCH=arm64 CROSS
 make -j$PROC -C "$(pwd)" O="$(pwd)/out" "${KERNEL_MAKE_ENV[@]}" ARCH=arm64 CROSS_COMPILE="${BUILD_CROSS_COMPILE}" REAL_CC="${KERNEL_LLVM_BIN}" CFP_CC="$KERNEL_LLVM_CFP" CLANG_TRIPLE=$CLANG_TRIPLE ANDROID_VERSION="$ANDROID_VERSION"
  
 #cp -f out/arch/arm64/boot/Image "$(pwd)/arch/arm64/boot/Image"
-"$(pwd)/tools/dtc" "$(pwd)/arch/arm64/boot/dts/qcom/03_dtbdump_e%Irlw.dts" >> "$(pwd)/out/arch/arm64/boot/Image-dtb" # TODO: shove this into the relevant Makefile
+"$(pwd)/tools/dtc" "$(pwd)/arch/arm64/boot/dts/qcom/03_dtbdump_<e,u_AAy.dtb.dts" >> "$(pwd)/out/arch/arm64/boot/Image-dtb" # TODO: shove this into the relevant Makefile
 "$(pwd)/create_image.sh"
