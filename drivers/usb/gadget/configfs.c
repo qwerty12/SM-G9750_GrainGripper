@@ -1641,6 +1641,7 @@ static void configfs_composite_unbind(struct usb_gadget *gadget)
 	spin_unlock_irqrestore(&gi->spinlock, flags);
 }
 
+#ifndef CONFIG_USB_CONFIGFS_UEVENT
 static int configfs_composite_setup(struct usb_gadget *gadget,
 		const struct usb_ctrlrequest *ctrl)
 {
@@ -1687,6 +1688,7 @@ static void configfs_composite_disconnect(struct usb_gadget *gadget)
 	composite_disconnect(gadget);
 	spin_unlock_irqrestore(&gi->spinlock, flags);
 }
+#endif
 
 static void configfs_composite_suspend(struct usb_gadget *gadget)
 {
@@ -1745,18 +1747,33 @@ static void android_gadget_complete(struct usb_ep *ep, struct usb_request *req)
 static int android_setup(struct usb_gadget *gadget,
 			const struct usb_ctrlrequest *c)
 {
-	struct usb_composite_dev *cdev = get_gadget_data(gadget);
-	unsigned long flags;
-	struct gadget_info *gi = container_of(cdev, struct gadget_info, cdev);
+	struct usb_composite_dev *cdev;
+	unsigned long flags, flags2;
+	struct gadget_info *gi;
 	int value = -EOPNOTSUPP;
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 	struct usb_configuration *configuration;
 	struct usb_function *f;
-	struct usb_request		*req = cdev->req;
-
-	req->complete = android_gadget_complete;
+	struct usb_request		*req;
 #else
 	struct usb_function_instance *fi;
+#endif
+
+	cdev = get_gadget_data(gadget);
+	if (!cdev)
+		return 0;
+
+	gi = container_of(cdev, struct gadget_info, cdev);
+	spin_lock_irqsave(&gi->spinlock, flags2);
+	cdev = get_gadget_data(gadget);
+	if (!cdev || gi->unbind) {
+		spin_unlock_irqrestore(&gi->spinlock, flags2);
+		return 0;
+	}
+
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	req = cdev->req;
+	req->complete = android_gadget_complete;
 #endif
 
 	spin_lock_irqsave(&cdev->lock, flags);
@@ -1765,6 +1782,7 @@ static int android_setup(struct usb_gadget *gadget,
 		schedule_work(&gi->work);
 	}
 	spin_unlock_irqrestore(&cdev->lock, flags);
+	spin_unlock_irqrestore(&gi->spinlock, flags2);
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 	list_for_each_entry(configuration, &cdev->configs, list) {
 		list_for_each_entry(f, &configuration->functions, list) {
@@ -1782,6 +1800,7 @@ static int android_setup(struct usb_gadget *gadget,
 #endif
 		}
 	}
+	spin_lock_irqsave(&gi->spinlock, flags2);
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 	if (value < 0)
 		value = terminal_ctrl_request(cdev, c);
@@ -1795,8 +1814,10 @@ static int android_setup(struct usb_gadget *gadget,
 	 * for mirror link command case, if it already been handled,
 	 * do not pass to composite_setup
 	 */
-	if (value == 0)
+	if (value == 0) {
+		spin_unlock_irqrestore(&gi->spinlock, flags2);
 		return value;
+	}
 #endif
 
 #ifdef CONFIG_USB_CONFIGFS_F_ACC
@@ -1805,7 +1826,7 @@ static int android_setup(struct usb_gadget *gadget,
 #endif
 
 	if (value < 0)
-		value = configfs_composite_setup(gadget, c);
+		value = composite_setup(gadget, c);
 
 	spin_lock_irqsave(&cdev->lock, flags);
 
@@ -1819,6 +1840,7 @@ static int android_setup(struct usb_gadget *gadget,
 		schedule_work(&gi->work);
 	}
 	spin_unlock_irqrestore(&cdev->lock, flags);
+	spin_unlock_irqrestore(&gi->spinlock, flags2);
 
 	return value;
 }
@@ -1826,7 +1848,8 @@ static int android_setup(struct usb_gadget *gadget,
 static void android_disconnect(struct usb_gadget *gadget)
 {
 	struct usb_composite_dev        *cdev = get_gadget_data(gadget);
-	struct gadget_info *gi = container_of(cdev, struct gadget_info, cdev);
+	struct gadget_info *gi;
+	unsigned long flags;
 
 	/* FIXME: There's a race between usb_gadget_udc_stop() which is likely
 	 * to set the gadget driver to NULL in the udc driver and this drivers
@@ -1837,6 +1860,14 @@ static void android_disconnect(struct usb_gadget *gadget)
 	 */
 	if (cdev == NULL) {
 		WARN(1, "%s: gadget driver already disconnected\n", __func__);
+		return;
+	}
+
+	gi = container_of(cdev, struct gadget_info, cdev);
+	spin_lock_irqsave(&gi->spinlock, flags);
+	cdev = get_gadget_data(gadget);
+	if (!cdev || gi->unbind) {
+		spin_unlock_irqrestore(&gi->spinlock, flags);
 		return;
 	}
 
@@ -1863,11 +1894,12 @@ static void android_disconnect(struct usb_gadget *gadget)
 			 __func__, gi->connected, gi->sw_connected);
 		schedule_work(&gi->work);
 	}
-	configfs_composite_disconnect(gadget);
+	composite_disconnect(gadget);
 #else
 	schedule_work(&gi->work);
-	configfs_composite_disconnect(gadget);
+	composite_disconnect(gadget);
 #endif
+	spin_unlock_irqrestore(&gi->spinlock, flags);
 }
 #endif
 
